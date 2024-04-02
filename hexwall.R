@@ -10,12 +10,17 @@ library(purrr)
 # scale_coords:     Should the coordinates be scaled to the hexagon size?
 # remove_size:      Should hexagons of an abnormal size be removed?
 # sort_mode:        How should the files be sorted?
+# background_color: The colour of the background canvas
+# n_stickers:       The number of hexagons to produce. Recycled in file order.
 hexwall <- function(path, sticker_row_size = 16, sticker_width = 500, remove_small = TRUE, total_stickers = NULL, remove_size = TRUE,
-                    coords = NULL, scale_coords = TRUE, sort_mode = c("filename", "random", "color", "colour")){
+                    coords = NULL, scale_coords = TRUE, sort_mode = c("filename", "random", "color", "colour"), 
+                    background_color = "white", n_stickers = NULL){
   sort_mode <- match.arg(sort_mode)
   
   # Load stickers
   sticker_files <- list.files(path)
+  if(is.null(n_stickers)) n_stickers <- length(sticker_files)
+  sticker_files <- rep_len(sticker_files, n_stickers)
   stickers <- file.path(path, sticker_files) %>% 
     map(function(path){
       switch(tools::file_ext(path),
@@ -126,7 +131,7 @@ hexwall <- function(path, sticker_row_size = 16, sticker_width = 500, remove_sma
     
     # Add stickers to canvas
     canvas <- image_blank(max(sticker_pos$x) + sticker_width, 
-                          max(sticker_pos$y) + sticker_height, "white")
+                          max(sticker_pos$y) + sticker_height, background_color)
     reduce2(stickers, sticker_pos%>%split(1:NROW(.)), 
             ~ image_composite(
               ..1, ..2,
